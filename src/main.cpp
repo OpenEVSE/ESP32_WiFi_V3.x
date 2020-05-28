@@ -40,6 +40,7 @@
 #include "divert.h"
 #include "ota.h"
 #include "lcd.h"
+#include "lora.h"
 #include "openevse.h"
 #include "root_ca.h"
 #include "hal.h"
@@ -78,6 +79,12 @@ void setup()
   // Initialise the WiFi
   net_setup();
   DBUGF("After net_setup: %d", HAL.getFreeHeap());
+
+#ifdef ENABLE_LORA
+  // Initialise LoRa if supported
+  lora_setup();
+  DBUGF("After lora_setup: %d", HAL.getFreeHeap());
+#endif
 
   // Initialise Mongoose networking library
   Mongoose.begin();
@@ -212,6 +219,12 @@ loop() {
       Timer1 = millis();
     }
   } // end WiFi connected
+
+#ifdef ENABLE_LORA
+  uint8_t loraPacket[8];
+  create_rapi_packed(loraPacket);
+  lora_publish(loraPacket);
+#endif
 
   Profile_End(loop, 10);
 } // end loop
