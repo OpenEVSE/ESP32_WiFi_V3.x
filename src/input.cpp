@@ -16,10 +16,16 @@
 #include "espal.h"
 #include "emoncms.h"
 #include "tesla_client.h"
+#include "rfid.h"
 
 #include "LedManagerTask.h"
 
 #include "RapiSender.h"
+
+#ifdef ENABLE_MCP9808
+#include <Adafruit_MCP9808.h>
+Adafruit_MCP9808 tempsensor = Adafruit_MCP9808();
+#endif
 
 int espflash = 0;
 int espfree = 0;
@@ -86,6 +92,9 @@ class InputTask : public MicroTasks::Task
 
 void create_rapi_json(JsonDocument &doc)
 {
+  if(config_rfid_enabled()) {
+    doc["authenticated"] = rfid.getAuthenticatedTag();
+  }
   doc["amp"] = evse.getAmps() * AMPS_SCALE_FACTOR;
   doc["voltage"] = evse.getVoltage() * VOLTS_SCALE_FACTOR;
   doc["pilot"] = evse.getChargeCurrent();
